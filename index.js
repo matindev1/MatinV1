@@ -1,19 +1,25 @@
 const http = require('http');
+const fs = require('fs');
 const TelegramBot = require('node-telegram-bot-api');
-const fetch = require('node-fetch');
+const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 const puppeteer = require('puppeteer');
 
-// دروستکردنی سەرۆکی HTTP
+const puppeteerConfig = {
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    headless: 'new'
+};
+
+// Create HTTP server
 const server = http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end('HTTP Server is running!');
+    res.end('MatinDex');
 });
 
-// کۆدی بۆتەکەت
+// Bot token
 const token = '7471835272:AAFAj3rXHWTXmAWJQhTiS8GJ2ly1QeAB0kQ';
 const bot = new TelegramBot(token, { polling: true });
 
-// زمانەکان
+// Languages
 const languages = {
     en: {
         welcome: 'Welcome! Send a TikTok or Instagram video link to download.',
@@ -47,10 +53,10 @@ const languages = {
         downloadStarted: 'بدأ التحميل، يرجى الانتظار...',
         processingVideo: 'جاري معالجة الفيديو...',
         help: 'أرسل لي رابط فيديو TikTok أو Instagram لتنزيله'
-    },
+    }
 };
 
-// زمانەکانی بەکارهێنەران
+// User languages
 let userLanguage = {};
 
 // Commands menu
@@ -62,10 +68,10 @@ const commands = [
 
 bot.setMyCommands(commands);
 
-// فەرمانی /start
+// /start command
 bot.onText(/\/start/, (msg) => {
     const chatId = msg.chat.id;
-    userLanguage[chatId] = 'en'; // زمانێکی بنەڕەتی دیاری بکە
+    userLanguage[chatId] = 'en';
     bot.sendMessage(chatId, languages[userLanguage[chatId]].welcome);
 });
 
@@ -80,7 +86,7 @@ bot.onText(/\/menu/, (msg) => {
     bot.sendMessage(chatId, menuText);
 });
 
-// فەرمانی /language
+// /language command
 bot.onText(/\/language/, (msg) => {
     const chatId = msg.chat.id;
     const options = {
@@ -95,7 +101,7 @@ bot.onText(/\/language/, (msg) => {
     bot.sendMessage(chatId, 'Choose your language / زمانەکەت هەڵبژێرە / اختر لغتك:', options);
 });
 
-// چاودێریکردنی هەڵبژاردنی زمان
+// Handle language selection
 bot.on('callback_query', (query) => {
     const chatId = query.message.chat.id;
     const language = query.data;
@@ -103,22 +109,19 @@ bot.on('callback_query', (query) => {
     bot.sendMessage(chatId, languages[language].languageSet);
 });
 
-// چاودێریکردنی نامەکان
+// Handle messages
 bot.on('message', async (msg) => {
     const chatId = msg.chat.id;
     const url = msg.text;
 
-    // Set default language if not set
     if (!userLanguage[chatId]) {
         userLanguage[chatId] = 'en';
     }
 
-    // ئەگەر نامەکە لینک نەبوو
-    if (!url.startsWith('http')) return;
+    if (!url?.startsWith('http')) return;
 
     if (url.includes('tiktok.com')) {
         try {
-            // داگرتنی ڤیدیۆی TikTok
             const apiUrl = `https://www.tikwm.com/api/?url=${url}`;
             const response = await fetch(apiUrl);
             const data = await response.json();
@@ -132,7 +135,7 @@ bot.on('message', async (msg) => {
 
             writer.on('finish', () => {
                 bot.sendVideo(chatId, filePath).then(() => {
-                    fs.unlinkSync(filePath); // فایلەکە بسڕەوە دوای ناردن
+                    fs.unlinkSync(filePath);
                     bot.sendMessage(chatId, languages[userLanguage[chatId]].videoDownloaded);
                 });
             });
@@ -146,11 +149,9 @@ bot.on('message', async (msg) => {
     } else if (url.includes('instagram.com')) {
         let browser;
         try {
-            // داگرتنی ڤیدیۆی Instagram
             browser = await puppeteer.launch(puppeteerConfig);
             const page = await browser.newPage();
             
-            // Set user agent to mimic real browser
             await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36');
             
             await page.setRequestInterception(true);
@@ -217,7 +218,6 @@ bot.on('message', async (msg) => {
     }
 });
 
-// گوێگرتن لە پۆرتی 80 (HTTP)
-server.listen(80, () => {
+server.listen(80, '0.0.0.0', () => {
     console.log('HTTP Server running on port 80');
 });
