@@ -1,14 +1,15 @@
-import TelegramBot from 'node-telegram-bot-api';
-import fetch from 'node-fetch';
-import puppeteer from 'puppeteer';
-import fs from 'fs';
+const http = require('http');
+const TelegramBot = require('node-telegram-bot-api');
+const fetch = require('node-fetch');
+const puppeteer = require('puppeteer');
 
-const puppeteerConfig = {
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
-    headless: 'new'
-};
+// دروستکردنی سەرۆکی HTTP
+const server = http.createServer((req, res) => {
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.end('HTTP Server is running!');
+});
 
-// Tokenی بۆتەکەت لێرە دابنێ
+// کۆدی بۆتەکەت
 const token = '7471835272:AAFAj3rXHWTXmAWJQhTiS8GJ2ly1QeAB0kQ';
 const bot = new TelegramBot(token, { polling: true });
 
@@ -216,4 +217,7 @@ bot.on('message', async (msg) => {
     }
 });
 
-console.log('بۆتەکە دەستیپێکرد...');
+// گوێگرتن لە پۆرتی 80 (HTTP)
+server.listen(80, () => {
+    console.log('HTTP Server running on port 80');
+});
