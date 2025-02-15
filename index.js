@@ -9,7 +9,7 @@ const puppeteerConfig = {
 };
 
 // Tokenی بۆتەکەت لێرە دابنێ
-const token = '7439944549:AAHDZsF5SJXcCIqA9Zo5zvh_MZ6-iZjTJ0U';
+const token = '7471835272:AAFAj3rXHWTXmAWJQhTiS8GJ2ly1QeAB0kQ';
 const bot = new TelegramBot(token, { polling: true });
 
 // زمانەکان
