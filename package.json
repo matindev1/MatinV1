@@ -11,9 +11,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/node": "^18.0.6",
-    "node-fetch": "^3.3.2",
+    "@types/node": "^18.19.76",
+    "node-fetch": "^2.7.0",
     "node-telegram-bot-api": "^0.66.0",
-    "puppeteer": "^24.2.0"
+    "puppeteer": "^24.2.0",
+    "http": "^0.0.0"
   }
 }
